@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"time"
@@ -50,12 +51,12 @@ type Student struct {
 
 // API ProctorExam sdk metadata
 type API struct {
-	baseURL      *url.URL
-	httpClient   *http.Client
-	userAgent    string
-	debug        bool
-	apiKey       string
-	apiSecretKey string
+	baseURL    *url.URL
+	httpClient *http.Client
+	userAgent  string
+	debug      bool
+	apiKey     string
+	apiSecret  string
 }
 
 // Option is a functional option for configuring the API client
@@ -93,7 +94,9 @@ func New(opts ...Option) (*API, error) {
 		httpClient: &http.Client{
 			Timeout: time.Second * 30,
 		},
-		debug: false,
+		debug:     false,
+		apiKey:    os.Getenv("PE_API_KEY"),
+		apiSecret: os.Getenv("PE_API_SECRET"),
 	}
 
 	if err := client.parseOptions(opts...); err != nil {
@@ -125,7 +128,7 @@ func (api *API) signParams(params map[string]string) string {
 		}
 	}
 
-	hash := hmac.New(sha256.New, []byte(api.apiSecretKey))
+	hash := hmac.New(sha256.New, []byte(api.apiSecret))
 	hash.Write([]byte(baseString))
 	signature := hex.EncodeToString(hash.Sum(nil))
 
