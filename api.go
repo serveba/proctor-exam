@@ -25,9 +25,11 @@ const apiPrefix string = "/api/v3"
 
 // Exam data struct
 type Exam struct {
-	ID          int64  `json:"id"`
-	InstituteID int64  `json:"institute_id"`
-	Name        string `json:"name"`
+	ID              int64  `json:"id"`
+	InstituteID     int64  `json:"institute_id"`
+	Name            string `json:"name"`
+	DurationMinutes int    `json:"duration_minutes"`
+	StartDate       string `json:"start_date"`
 }
 
 // User internal data of user response
