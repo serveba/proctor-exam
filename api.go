@@ -16,7 +16,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -98,11 +97,18 @@ func BaseURL(baseURL *url.URL) Option {
 	}
 }
 
+// Debug allows overriding of API client debug for having more trace
+func Debug(debug bool) Option {
+	return func(api *API) error {
+		api.debug = debug
+		return nil
+	}
+}
+
 // New creates a new API client
 func New(opts ...Option) (*API, error) {
 	// url, _ := url.Parse(apiURL)
 	client := &API{
-		// baseURL: url,
 		httpClient: &http.Client{
 			Timeout: time.Second * 30,
 		},
@@ -143,8 +149,8 @@ func (api *API) signParams(params map[string]string) string {
 	hash.Write([]byte(baseString))
 	signature := hex.EncodeToString(hash.Sum(nil))
 
-	// fmt.Printf("baseString: %s\n", baseString)
-	// fmt.Printf("Signature: %s\n", signature)
+	api.log(fmt.Sprintf("baseString: %s\n", baseString))
+	// api.log(fmt.Sprintf("Signature: %s\n\n", signature))
 
 	return signature
 }
@@ -152,9 +158,9 @@ func (api *API) signParams(params map[string]string) string {
 func (api *API) newRequest(method, path string, body interface{}, params, queryParams map[string]string) (*http.Request, error) {
 	rel := &url.URL{Path: path}
 	u := api.baseURL.ResolveReference(rel)
-	fmt.Printf("%s %s\n", strings.ToUpper(method), u.String())
 
-	// fmt.Printf("path: %s, rel: %v\n", path, rel)
+	// api.log(fmt.Sprintf("%s %s\n", strings.ToUpper(method), u.String()))
+
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)
@@ -173,6 +179,8 @@ func (api *API) newRequest(method, path string, body interface{}, params, queryP
 			target = fmt.Sprintf("%s&%s=%s", target, key, value)
 		}
 	}
+
+	// api.log(fmt.Sprintf("%s %s\n", strings.ToUpper(method), target))
 
 	req, err := http.NewRequest(method, target, buf)
 	if err != nil {
@@ -194,9 +202,8 @@ func (api *API) do(req *http.Request, v interface{}) error {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("%s", reqDump)
+		api.log(fmt.Sprintf("%s", reqDump))
 	}
-
 	resp, err := api.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -207,14 +214,8 @@ func (api *API) do(req *http.Request, v interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	if api.debug {
-		bodyString := string(bodyBytes)
-		fmt.Printf("RESPONSE: \n%s\n", bodyString)
-	}
-
+	api.log(fmt.Sprintf("RESPONSE: \n%s\n", string(bodyBytes)))
 	err = json.Unmarshal(bodyBytes, v)
-	// err = json.NewDecoder(resp.Body).Decode(v)
 	return err
 }
 
@@ -348,7 +349,6 @@ func (api *API) StudentSession(ID int64) (StudentSession, error) {
 	params := getBaseParams()
 	params["id"] = strconv.Itoa(int(ID))
 	req, err := api.newGetRequest(path, params, nil)
-	fmt.Printf("path: %s\n", path)
 	if err != nil {
 		return StudentSession{}, err
 	}
@@ -359,4 +359,10 @@ func (api *API) StudentSession(ID int64) (StudentSession, error) {
 	err = api.do(req, &wrapper)
 
 	return wrapper.Item, err
+}
+
+func (api *API) log(text string) {
+	if api.debug {
+		fmt.Print(text)
+	}
 }

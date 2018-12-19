@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,11 +39,7 @@ func setup() func() {
 
 func initProctorAPI(debug bool) {
 	url, _ := url.Parse(server.URL)
-	api, _ = New(BaseURL(url))
-	// for debugging requests and library
-	if debug {
-		api.debug = true
-	}
+	api, _ = New(BaseURL(url), Debug(true))
 }
 
 func fixture(path string) string {
@@ -213,17 +210,17 @@ func TestStudentSession(t *testing.T) {
 }
 
 // for testing purposes targetting prod
-// func TestXXX(t *testing.T) {
-// 	url, _ := url.Parse(os.Getenv("PE_ENDPOINT"))
-// 	api, _ = New(BaseURL(url))
+func TestXXX(t *testing.T) {
+	url, _ := url.Parse(os.Getenv("PE_ENDPOINT"))
+	api, _ = New(BaseURL(url), Debug(true))
 
-// 	exams, err := api.StudentSession(941)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	fmt.Printf("exams: %v", exams)
-// 	t.Fail()
-// }
+	ss, err := api.StudentSession(943)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("\nStudentSession: %v\n", ss)
+	t.Fail()
+}
 
 // for testing purposes targetting prod
 // func TestXXX(t *testing.T) {
