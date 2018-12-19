@@ -29,7 +29,8 @@ type Exam struct {
 	InstituteID     int64  `json:"institute_id"`
 	Name            string `json:"name"`
 	DurationMinutes int    `json:"duration_minutes"`
-	StartDate       string `json:"start_date"`
+	StartTime       string `json:"start_time"`
+	EndTime         string `json:"end_time"`
 }
 
 // User internal data of user response
@@ -53,8 +54,10 @@ type Student struct {
 
 // StudentSession response object for GET /student_sessions/:id
 type StudentSession struct {
-	ID    int64  `json:"id"`
-	Email string `json:"email"`
+	ID     int64  `json:"id"`
+	Email  string `json:"email"`
+	Name   string `json:"name"`
+	ExamID int64  `json:"exam_id"`
 }
 
 // API ProctorExam sdk metadata
