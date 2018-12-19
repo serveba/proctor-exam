@@ -16,6 +16,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -142,8 +143,8 @@ func (api *API) signParams(params map[string]string) string {
 	hash.Write([]byte(baseString))
 	signature := hex.EncodeToString(hash.Sum(nil))
 
-	fmt.Printf("baseString: %s\n", baseString)
-	fmt.Printf("Signature: %s\n", signature)
+	// fmt.Printf("baseString: %s\n", baseString)
+	// fmt.Printf("Signature: %s\n", signature)
 
 	return signature
 }
@@ -151,7 +152,9 @@ func (api *API) signParams(params map[string]string) string {
 func (api *API) newRequest(method, path string, body interface{}, params, queryParams map[string]string) (*http.Request, error) {
 	rel := &url.URL{Path: path}
 	u := api.baseURL.ResolveReference(rel)
-	fmt.Printf("path: %s, rel: %v\n", path, rel)
+	fmt.Printf("%s %s\n", strings.ToUpper(method), u.String())
+
+	// fmt.Printf("path: %s, rel: %v\n", path, rel)
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)

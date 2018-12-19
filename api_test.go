@@ -217,6 +217,19 @@ func TestStudentSession(t *testing.T) {
 // 	url, _ := url.Parse(os.Getenv("PE_ENDPOINT"))
 // 	api, _ = New(BaseURL(url))
 
+// 	exams, err := api.StudentSession(941)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	fmt.Printf("exams: %v", exams)
+// 	t.Fail()
+// }
+
+// for testing purposes targetting prod
+// func TestXXX(t *testing.T) {
+// 	url, _ := url.Parse(os.Getenv("PE_ENDPOINT"))
+// 	api, _ = New(BaseURL(url))
+
 // 	exams, err := api.Exams()
 // 	if err != nil {
 // 		t.Fatal(err)
