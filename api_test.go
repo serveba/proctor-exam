@@ -22,18 +22,26 @@ const (
 	idUser        = 11
 	idExam        = 17
 	idStudent     = 804
-	idStudSession = 4
+	idStudSession = 926
+	// idStudSession = 4
 )
 
 func setup() func() {
 	mux = http.NewServeMux()
 	server = httptest.NewServer(mux)
+	initProctorAPI(true)
+
+	return func() {
+		server.Close()
+	}
+}
+
+func initProctorAPI(debug bool) {
 	url, _ := url.Parse(server.URL)
 	api, _ = New(BaseURL(url))
 	// for debugging requests and library
-	// api.debug = true
-	return func() {
-		server.Close()
+	if debug {
+		api.debug = true
 	}
 }
 
@@ -184,3 +192,35 @@ func TestIndexStudents(t *testing.T) {
 	assert.Equal(t, len(students), 1)
 	assert.Equal(t, int(students[0].ID), idStudent)
 }
+
+func TestStudentSession(t *testing.T) {
+	teardown := setup()
+	defer teardown()
+
+	mux.HandleFunc("/api/v3/student_sessions/1",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, fixture("student_session.json"))
+		})
+	ss, err := api.StudentSession(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, ss.ID, int64(926))
+	assert.Equal(t, ss.Email, "svelasco@protoseducacion.com")
+}
+
+// for testing purposes targetting prod
+// func TestXXX(t *testing.T) {
+// 	url, _ := url.Parse(os.Getenv("PE_ENDPOINT"))
+// 	api, _ = New(BaseURL(url))
+
+// 	exams, err := api.Exams()
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	fmt.Printf("exams: %v", exams)
+// 	t.Fail()
+// }

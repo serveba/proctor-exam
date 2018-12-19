@@ -51,6 +51,12 @@ type Student struct {
 	ExamID int64  `json:"exam_id"`
 }
 
+// StudentSession response object for GET /student_sessions/:id
+type StudentSession struct {
+	ID    int64  `json:"id"`
+	Email string `json:"email"`
+}
+
 // API ProctorExam sdk metadata
 type API struct {
 	baseURL    *url.URL
@@ -98,9 +104,8 @@ func New(opts ...Option) (*API, error) {
 		},
 		debug:     false,
 		apiKey:    os.Getenv("PE_API_KEY"),
-		apiSecret: os.Getenv("PE_API_SECRET"),
+		apiSecret: os.Getenv("PE_API_SECRET_KEY"),
 	}
-
 	if err := client.parseOptions(opts...); err != nil {
 		return nil, err
 	}
@@ -134,8 +139,8 @@ func (api *API) signParams(params map[string]string) string {
 	hash.Write([]byte(baseString))
 	signature := hex.EncodeToString(hash.Sum(nil))
 
-	// fmt.Printf("baseString: %s\n", baseString)
-	// fmt.Printf("Signature: %s\n", signature)
+	fmt.Printf("baseString: %s\n", baseString)
+	fmt.Printf("Signature: %s\n", signature)
 
 	return signature
 }
@@ -143,6 +148,7 @@ func (api *API) signParams(params map[string]string) string {
 func (api *API) newRequest(method, path string, body interface{}, params, queryParams map[string]string) (*http.Request, error) {
 	rel := &url.URL{Path: path}
 	u := api.baseURL.ResolveReference(rel)
+	fmt.Printf("path: %s, rel: %v\n", path, rel)
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)
@@ -327,5 +333,24 @@ func (api *API) IndexStudents(examID int64) ([]Student, error) {
 	var students studentsWrapper
 	err = api.do(req, &students)
 
-	return students.Items, nil
+	return students.Items, err
+}
+
+// StudentSession GET /student_sessions/:id
+func (api *API) StudentSession(ID int64) (StudentSession, error) {
+	path := fmt.Sprintf("%s/student_sessions/%d", apiPrefix, ID)
+	params := getBaseParams()
+	params["id"] = strconv.Itoa(int(ID))
+	req, err := api.newGetRequest(path, params, nil)
+	fmt.Printf("path: %s\n", path)
+	if err != nil {
+		return StudentSession{}, err
+	}
+	type studentSessionWrapper struct {
+		Item StudentSession `json:"student_session"`
+	}
+	var wrapper studentSessionWrapper
+	err = api.do(req, &wrapper)
+
+	return wrapper.Item, err
 }
